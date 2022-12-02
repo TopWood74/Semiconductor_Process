@@ -1,0 +1,43 @@
+{% extends 'lmembers/base_full_width.html' %}
+{% block main_area %}
+{% load static %}
+
+<section style="min-height: 910px;">
+    <div class="container mt-4">
+        <div class="row">
+
+            <div class="col-12">
+                <h4>A.I Semiconductor Process</h4>
+                <br/>
+                <div>
+                    ※ 반도체 AI 불량검출 시스템!
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text">A.I<br>Semiconductor Inspection</div>      
+                  
+</section>
+<style>
+    body { background: url( {% static '/lmembers/images/circuit-board-g65c4b2994_1920.jpg' %} ) center center  no-repeat; }
+    section { color: #fff; position: relative; }
+    section h4 { font-weight: 900; }
+
+    section .text {
+        font-family: 'Abril Fatface';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        text-align: center;
+        -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+
+        font-size: 65px;
+        line-height: 76px;
+        text-shadow:-2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000; 
+
+    }
+</style>
+{% endblock %}

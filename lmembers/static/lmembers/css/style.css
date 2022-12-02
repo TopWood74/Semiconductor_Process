@@ -1,0 +1,17 @@
+/*
+body {
+    background: url('/static/blog/images/background.jpg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+}
+
+.card {
+	background-color: rgba(255,255,255,0.7);
+}
+*/
+
+body {
+    padding-top: 56px;
+}

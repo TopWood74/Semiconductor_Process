@@ -1,0 +1,105 @@
+{% extends 'lmembers/base_full_width.html' %}
+{% block main_area %}
+
+<section>
+    <div class="container mt-4 mb-4">
+        <div class="row">
+            <div class="col-12 mb-5 d-none" id="div-result">
+                <h4>예측 결과</h4>
+                <br/>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <ul>
+                            <li>입력 내용: <span id="result-lis"></span></li>
+                            <li>감소 여부: <span id="result-ans"></span></li>   
+                        </ul>
+                    </div>
+                    <div class="col-sm-6">
+                        <img src="/static/ml/images/img_Survived.jpg" id="div-image" class="w-100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <h4>감소고객 예측모델링</h4>
+                <br/>
+                <form action="./result/" method="post" onsubmit="return submitResult();">{% csrf_token %}
+                    <div class="form-group row">
+<!--
+                        {% for i, t in lis.items %}  
+                            <div class="col-6">
+                                <label for="{{ i }}">{{ i }}:</label><input type="number" name="{{ i }}" class="form-control" id="{{ i }}" placeholder="*입력범위: {{ t }}" min="{{ t | first }}"  max="{{ t | last }}" maxlength="2" required>
+                            </div>
+                        {% endfor %}    
+-->                        
+                        {% for i, t in lis.items %}  
+                            <div class="col-6 my-2">
+                                <label for="{{ i }}">* {{ i }}:</label>
+                                <select name="{{ i }}" class="form-control" id="{{ i }}" placeholder="*입력범위: {{ t }}" required>
+                                    <option value="">::선택::</option>
+                                {% for o in t %}
+                                    <option value="{{ o }}">{{ o }}</option>
+                                {% endfor %}
+                                </select>
+                            </div>
+                        {% endfor %}                          
+<!--
+                        <label for="fare_cat">fare_cat:</label><input type="text" name="fare_cat" class="form-control" id="fare_cat" required>
+                        <label for="age_cat">age_cat:</label><input type="text" name="age_cat" class="form-control" id="age_cat" required>
+                        <label for="family">family:</label><input type="text" name="family" class="form-control" id="family" required>
+                        <label for="sex_female">sex_female:</label><input type="text" name="sex_female" class="form-control" id="sex_female" required>
+                        <label for="sex_male">sex_male:</label><input type="text" name="sex_male" class="form-control" id="sex_male" required>
+                        <label for="embarked_C">embarked_C:</label><input type="text" name="embarked_C" class="form-control" id="embarked_C" required>
+                        <label for="embarked_Q">embarked_Q:</label><input type="text" name="embarked_Q" class="form-control" id="embarked_Q" required>
+                        <label for="embarked_S">embarked_S:</label><input type="text" name="embarked_S" class="form-control" id="embarked_S" required>
+-->                        
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="reset" class="btn btn-info">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<script type="text/javascript">
+function submitResult() {
+/*    
+    let sex_female = $("#sex_female").val();
+    let sex_male = $("#sex_male").val();
+    if (sex_female == sex_male) {
+        alert("성별을 정확하게 선택해 주세요.")
+        return false;
+    }
+
+    let embarked_C = $("#embarked_C").val();
+    let embarked_Q = $("#embarked_Q").val();
+    let embarked_S = $("#embarked_S").val();
+    let embarked = Number(embarked_C,10) + Number(embarked_Q,10) + Number(embarked_S,10);
+    if (embarked != 1) {
+        alert("승선항구를 정확하게 선택해 주세요.")
+        return false;
+    }
+*/
+    let ajax = {}
+    ajax.type = 'post'; /* get, post */
+    ajax.url = "./result/";
+    ajax.data = $('form').serialize();
+    ajax.dataType = 'html'; /* html, jzon */
+    ajax.csrf = '{{ csrf_token }}';
+    ajax.success = function(data) { ajaxSuccess(data); };
+    ajaxReady(ajax); /* jQuery.ajax */
+    return false;
+}
+
+function ajaxSuccess(data) {
+    data = JSON.parse(data);
+    $("#result-ans").html(data.ans);
+    $("#result-lis").html(data.lis);
+    $("#div-result").removeClass('d-none');           
+    $("#div-image").attr("src", "/static/ml/images/img_"+data.ans+".jpg"); 
+}
+</script>
+{% endblock %}

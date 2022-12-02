@@ -1,0 +1,218 @@
+{% extends 'lmembers/base_full_width.html' %}
+{% block main_area %}
+
+<section style="min-height: 910px;">
+    <div class="container mt-4">
+        <div class="row">
+
+            <div class="col-12">
+                <h4>LMEMBERS - 회원 추천 상품 검색</h4>
+                <br/>
+                <form action="/lmembers/naver_search/" method="post" onsubmit="return submitResult();">
+                    <!-- {% csrf_token %} -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="form-input-q">* 회원번호:</label>&nbsp;<input type="text" name="q" class="form-control" id="form-input-q" required>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-12 mb-5 d-none" id="div-result">
+                <h4>검색된 결과</h4>
+                <br/>
+                <div class="container">
+                    <div class="row">
+                    
+                    </div>     
+                </div>
+            </div>            
+        </div>
+    </div>
+</section>
+<style>
+    .layerPopup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        margin: -30px 0 0 -30px;
+    }
+    .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border: 8px solid #f3f3f3; /* Light grey */
+        border-top: 8px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spinner 2s linear infinite;
+    }
+    @keyframes spinner {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    /* 출처: https://ospace.tistory.com/835 [JaPa2:티스토리] */
+</style>
+<script>
+    function showSpinner() {
+        document.getElementsByClassName('layerPopup')[0].style.display='block';
+    }
+    function hideSpinner() {
+        document.getElementsByClassName('layerPopup')[0].style.display='none';
+    }
+    // 출처: https://ospace.tistory.com/835 [JaPa2:티스토리]
+</script>
+<div class="layerPopup">
+    <div class="spinner"></div>
+</div>
+
+<script type="text/javascript">
+function submitResult() {
+    let ajax = {}
+    ajax.type = 'post';
+    ajax.url = "/lmembers/naver_search/";
+    ajax.data = JSON.stringify($('form').serializeObject());
+    ajax.dataType = 'json';
+    ajax.csrf = '{{ csrf_token }}';
+    ajax.success = function(data) { ajaxSuccess(data); };
+    ajaxReady(ajax); /* jQuery.ajax */
+    showSpinner();
+    return false;
+}
+
+function ajaxSuccess(data) {
+    console.log(data);
+    //data = JSON.parse(data);
+    //$("#div-result ul li").text(JSON.stringify(data));
+    hideSpinner();
+    $("#div-result div.container > div.row").html("");
+
+    $.each(data.list, function(index, item) { // 데이터 =item
+        //$li = "<li>" + "<a href='" + item.href + "'' target='_blank'>" + item.title + "</a></li>";
+        //$li = `<li><img src="${item.href}" /></li>`;
+        //$li = `<li><span>${item.id}</span>:<span>${item.rating}</span>,<span>${item.bgroup}</span>,<span>${item.mgroup}</span>,<span>${item.sgroup}</span>,<span>${item.scode}</span></li>`;
+
+        $li = `
+        <div class="col-4">
+            <div class="card  mb-3 ">
+                <img src="https://picsum.photos/seed/${item.id}/400/200" class="card-img-top" alt="${item.sgroup}">
+                <div class="card-body">
+                <p class="card-text">
+                    <div><span>-코드: ${item.id}</span></div>
+                    <div><span>-분류: ${item.bgroup}</span>,<span>${item.mgroup}</span>,<span>${item.sgroup}</span></div>
+                    <div><span>-상세: ${item.sgroup}</span>,<span>${item.scode}</span></div>
+                </p>
+                </div>
+            </div>        
+        </div>`;
+        $("#div-result div.container > div.row").append($li);
+    });    
+
+    $("#div-result").removeClass('d-none');   
+}
+</script>
+<script>
+    var data = {
+            "q": "1000",
+            "list": [
+                {
+                    "id": "C030401_2",
+                    "rating": 4.47939222311424,
+                    "bgroup": "신선식품",
+                    "mgroup": "수입과일",
+                    "sgroup": "바나나",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C030901_2",
+                    "rating": 4.230551325624462,
+                    "bgroup": "신선식품",
+                    "mgroup": "엽채류",
+                    "sgroup": "대파",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C010206_2",
+                    "rating": 3.9382243288534102,
+                    "bgroup": "신선식품",
+                    "mgroup": "과채류",
+                    "sgroup": "고추",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C030404_2",
+                    "rating": 3.791127954225594,
+                    "bgroup": "신선식품",
+                    "mgroup": "과채류",
+                    "sgroup": "애호박",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C070101_2",
+                    "rating": 3.7405096608825334,
+                    "bgroup": "가공식품",
+                    "mgroup": "두채류",
+                    "sgroup": "두부류",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C070102_2",
+                    "rating": 3.558504553489968,
+                    "bgroup": "신선식품",
+                    "mgroup": "두채류",
+                    "sgroup": "콩나물",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C170206_1",
+                    "rating": 3.537034266437798,
+                    "bgroup": "신선식품",
+                    "mgroup": "계란류",
+                    "sgroup": "일반계란",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C030202_2",
+                    "rating": 3.5278784039358495,
+                    "bgroup": "가공식품",
+                    "mgroup": "우유",
+                    "sgroup": "일반우유",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C030208_2",
+                    "rating": 3.471613528729499,
+                    "bgroup": "가공식품",
+                    "mgroup": "우유",
+                    "sgroup": "기능성우유",
+                    "scode": "중가"
+                },
+                {
+                    "id": "C030105_2",
+                    "rating": 3.3611852703351808,
+                    "bgroup": "일상용품",
+                    "mgroup": "청소욕실용품",
+                    "sgroup": "종량제봉투",
+                    "scode": "저가"
+                }
+            ]
+        }
+
+    jQuery(document).ready(function($) {
+        //ajaxSuccess(data);
+    });
+    </script>
+{% endblock %}

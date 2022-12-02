@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>{% block head_title %}A.I Semiconductor process{% endblock %}</title>
+
+    <link rel='stylesheet' media="all" href='https://fonts.googleapis.com/css2?family=Noto+Sans+KR&family=Abril+Fatface&display=swap' crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'lmembers/css/style.css' %}">
+    <!--<link rel="stylesheet" href="{% static 'lmembers/css/app-style.css' %}">-->
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" crossorigin="anonymous"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js" integrity="sha512-YUkaLm+KJ5lQXDBdqBqk7EVhJAdxRnVdT2vtCzwPHSweCzyMgYV/tgGF4/dCyqtCC2eCphz0lRQgatGVdfR0ww==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>    
+    <script src="https://kit.fontawesome.com/c15d443a1c.js" crossorigin="anonymous"></script>
+    <style type="text/css">
+* { font-family: 'Noto Sans KR', arial,sans-serif; }
+nav .navbar-brand { font-family: 'Abril Fatface'; font-style: italic; }
+#navbar-menu .active > a { font-weight: bold; }
+    </style>
+</head>
+<body>
+    {% include 'lmembers/navbar.html' %}
+    <div class="container my-3">
+        <div class="row">
+            <div class="col-12" id="main-area">
+    {% block main_area %} {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'lmembers/footer.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'lmembers/script/common.js' %}"></script>
+</body>
+</html>

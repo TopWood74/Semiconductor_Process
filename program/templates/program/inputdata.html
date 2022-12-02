@@ -1,0 +1,62 @@
+{% extends 'lmembers/base_full_width.html' %}
+{% block main_area %}
+
+<section style="min-height: 800px;">
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12 mb-5 d-none" id="div-result">
+                <h4>계산된 결과</h4>
+                <br/>
+                <ul>
+                    <li>입력한 수: <span id="result-lis"></span></li>
+                    <li>연산 방법: <span id="result-mode"></span></li>
+                    <li>합 계: <span id="result-ans"></span></li>   
+                </ul>     
+            </div>
+
+            <div class="col-12">
+                <h4>입력한 수 계산</h4>
+                <br/>
+                <form action="./result/" method="post" onsubmit="return submitResult();">
+                    <!-- {% csrf_token %} -->
+                    <div class="form-group">
+                        <label for="form-input-mode">연산 방법:</label>
+                        <select name="mode" class="form-control" id="form-input-mode" required>
+                            <option value="add">덧셈</option>
+                            <option value="sub">뺄셈</option>
+                            <option value="mul">곱셈</option>
+                            <option value="div">나눗셈</option>
+                        </select>
+                        <label for="form-input-a">1번째 수:</label><input type="text" name="a" class="form-control" id="form-input-a" required>
+                        <label for="form-input-b">2번째 수:</label><input type="text" name="b" class="form-control" id="form-input-b" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="reset" class="btn btn-info">Reset</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+function submitResult() {
+    let ajax = {}
+    ajax.type = 'post';
+    ajax.url = "./result/";
+    ajax.data = JSON.stringify($('form').serializeObject());
+    ajax.dataType = 'json';
+    ajax.csrf = '{{ csrf_token }}';
+    ajax.success = function(data) { ajaxSuccess(data); };
+    ajaxReady(ajax); /* jQuery.ajax */
+    return false;
+}
+
+function ajaxSuccess(data) {
+    //data = JSON.parse(data);
+    $("#result-ans").html(data.ans);
+    $("#result-lis").html(data.lis);
+    $("#result-mode").html(data.mode_kr + " (" + data.mode + ")");
+    $("#div-result").removeClass('d-none');   
+}
+</script>
+{% endblock %}

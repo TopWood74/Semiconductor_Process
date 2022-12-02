@@ -1,0 +1,630 @@
+{% extends 'lmembers/base_full_width.html' %}
+{% block main_area %}
+{% load static %}
+
+<style>
+/*
+    body {
+        background-size: 100% 100%;
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background .3s;
+    }        
+    
+    body {
+        //background-image: linear-gradient(567deg, rgba(165, 42, 4, 0.89), rgba(113, 102, 8, 0.89), rgba(13, 95, 16, 0.93), rgba(4, 79, 88, 0.94), rgba(19, 56, 86, 0.9), rgba(24, 32, 78, 0.94), rgba(100, 8, 115, 0.95));
+        //background-image: linear-gradient(567deg, rgba(165, 42, 4, 0.5), rgba(113, 102, 8, 0.5), rgba(13, 95, 16, 0.5), rgba(4, 79, 88, 0.5), rgba(19, 56, 86, 0.5), rgba(24, 32, 78, 0.5), rgba(100, 8, 115, 0.5));
+        background-image: url({% static '/lmembers/images/circuit-board-g65c4b2994_1920.jpg' %} );
+    }        
+
+    .card {
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
+        border: none;
+        background-color: rgba(0,0,0,.8);
+    }
+
+    .card * {
+        color: #fff;
+    }
+*/
+
+body {
+    background-size: 100% 100%;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background .3s;
+    background-color: rgba(0,100,255,.4);
+}   
+
+#img-list::-webkit-scrollbar, #detail-area::-webkit-scrollbar {
+    display: none; /* 크롬, 사파리, 오페라, 엣지 */
+}
+
+.card {
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
+    border: none;
+    background-color: rgba(255,255,255,.6);
+}
+
+#img-view {
+    border: 10px solid rgba(0,0,0,.3);
+    border-radius: 2vw;
+}
+
+#detail-area {
+    min-height:155px;
+    max-height:242px;
+    overflow-x: scroll; overflow-y:scroll;
+}
+</style>
+
+<style>
+    #img-list {
+        height: 490px;
+        //max-height: 800px;
+        overflow-x: scroll; overflow-y:scroll;
+    }
+    
+    #img-list li {
+        white-space: nowrap;
+        cursor:pointer;
+    }
+    
+    #img-list li.on {
+        background-color: #AAA;
+    } 
+    
+    #img-list li.f {
+        color: red;
+    } 
+    
+    #detail-area span { padding-right:15px; }
+</style>
+
+<section style="min-height: 800px;">
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center"><h3>반도체 수율</h3></div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">목표 수율</div>
+                    <div class="card-body">
+                      <div class="chart-container-2 text-center">
+                            <h2 id="ic-yidld-target">-</h2>
+                      </div>
+                    </div>
+                </div>        
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">검사 수율</div>
+                    <div class="card-body">
+                      <div class="chart-container-2 text-center">
+                        <h2 id="ic-yidld">-</h2>
+                      </div>
+                    </div>
+                </div>        
+            </div>    
+        </div>
+    </div>   
+    
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <form method="post" enctype="multipart/form-data" action="/program/scanimage_upload/" id="fileForm" onsubmit="return LoadingWithMask('{% static '/lmembers/images/spinner.gif' %}');">
+                    {% csrf_token %}
+                    <label>* 품질 검수: </label> 
+                    <button type="button" class="btn btn-dark my-4" onclick="$('#input-image').click();">검수 입력</button> <div style="display:none;"><input type="file" name="file" id="input-image" accept="image/*" multiple onchange="$('#upload-count').text($(this)[0].files.length);" /></div>
+                    <span class="pl-5" id="upload-count">-</span> <span class="pl-1"> 건</span>
+                    <button type="submit" class="btn btn-dark my-4" style="float:right;">A.I CHECK</button>
+                </form>
+                <hr />
+            </div>
+            <div class="row col-12">
+                <div class="col-7">
+                    <h4 id="img-result" class="text-center">---</h4>
+                </div>
+                <div class="col-5">
+                    <div class="text-center mb-2">
+                        <button type="button" id="btn-auto-check" class="btn btn-dark">자동 확인</button>
+                        <button type="button" id="btn-auto-stop" class="btn btn-dark">자동 멈춤</button>
+                        <div class="text-center mb-2">[PASS: <span id='num-pass'>-</span>, FAIL: <span id='num-fail'>-</span>]</div>                        
+                    </div>                    
+                </div>
+            </div>
+            <div class="row col-12">
+                <div class="col-7">
+                    <img class="img-fluid" id="img-view" src="https://dummyimage.com/600x600/ffffff/000000.png&text=ic+area" data-src="https://dummyimage.com/600x600/ffffff/000000.png&text=ic+area">                    
+                </div>
+                <div class="col-5">
+                    <div class="card">
+                        <div class="card-header">List</div>
+                        <div class="card-body">
+                          <div class="chart-container-2">
+                            <ol id="img-list"><!--<li data-img="bus.jpg">bus.jpg</li><li data-img="bus2.jpg">bus2.jpg</li>--></ol>
+                          </div>
+                        </div>
+                    </div>                    
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">상세 정보</div>
+                    <div class="card-body">
+                      <div class="chart-container-2">
+                        <div id="detail-area"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">개별 검출 현황</div>
+                    <div class="card-body">
+                      <div class="chart-container-2">
+                        <canvas id="myChart3"></canvas>
+                      </div>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center"><h3>종합 결과</h3></div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">검출 현황</div>
+                    <div class="card-body">
+                      <div class="chart-container-2">
+                        <canvas id="myChart"></canvas>
+                      </div>
+                    </div>
+                </div>        
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">검사 결과</div>
+                    <div class="card-body">
+                      <div class="chart-container-2">
+                        <canvas id="myChart2"></canvas>
+                      </div>
+                    </div>
+                </div>        
+            </div>    
+        </div>
+    </div>   
+
+</section>
+
+<script type="text/javascript">
+let ic_yidld = parseFloat(80.0);    
+if (location.search.length >= 2) {
+    ic_yidld = parseFloat(location.search.substring(1));
+}
+const ic_yidld_target = ic_yidld;
+
+jQuery(document).ready(function($) {
+    $("#btn-auto-check").prop("disabled", true);
+    $("#btn-auto-stop").prop("disabled", true);        
+   
+    $("#ic-yidld-target").html(ic_yidld_target.toFixed(1)+"%");
+
+    $('#fileForm').ajaxForm({
+        dataType:  'json',
+        resetForm: true,
+        success: ajaxSuccess
+    });
+
+    $(document).on('click','#img-list', function(e) {
+        //console.log(e.target.tagName);
+        if (e.target.tagName == "LI") {
+            var img = $(e.target).data("img");
+            $("#img-view").attr("src",img);
+
+            var check = $(e.target).data("check");
+            $("#img-result").text(check);
+
+            var index = $("#img-list li").index($(e.target));
+            $("#img-list li").removeClass("on").eq(index).addClass("on");            
+            document._li_index = index + 1;
+            //console.log("index", index);
+
+            viewValue(index);
+            //console.log(index,  document._data.img[index], document._data.arr[index]);
+        }
+    });
+
+    $(document).on('click','#btn-auto-stop', function(e) {
+        clearInterval(intervalId);
+        $("#btn-auto-check").prop("disabled", false);
+        $("#btn-auto-stop").prop("disabled", true);        
+    });
+
+    var intervalId;
+    $(document).on('click','#btn-auto-check', function(e) {
+        $("#btn-auto-check").prop("disabled", true);
+        $("#btn-auto-stop").prop("disabled", false);
+
+        intervalId = setInterval(function() {
+            let index = document._li_index;
+            document._li_index = index + 1;
+            //console.log(index, document._li_index);
+            var li = $("#img-list li").eq(index);
+            $("#img-list li").eq(index-1).removeClass("on");
+            li.addClass("on");
+
+            var img = li.data("img");
+            $("#img-view").attr("src",img);
+
+            var check = li.data("check");
+            $("#img-result").text(check);
+
+            viewValue(index);
+            //console.log(index,  document._data.img[index], document._data.arr[index]);
+            
+            if (li.data("check") == "FAIL") {
+                clearInterval(intervalId);
+                $("#btn-auto-check").prop("disabled", false);
+                $("#btn-auto-stop").prop("disabled", true);
+            } else if ($("#img-list li").length <= index) {
+                clearInterval(intervalId);
+                document._li_index = 0;
+
+                $("#btn-auto-check").prop("disabled", false);
+                $("#btn-auto-stop").prop("disabled", true);
+            }
+          }, 1000);
+    });
+});
+
+var chart1, chart2, chart3;
+function ajaxSuccess(data) {
+    //console.log(data);
+    
+    document._li_index = 0;    
+    $("#img-list").html("");
+    $("#detail-area").html("");
+    $("#img-view").attr("src", $("#img-view").data("src"))
+
+    let num_pass = 0;
+    let num_fail = 0;
+
+    document._data = data;
+    $("#btn-auto-check").prop("disabled", false);
+    data.img.forEach(function(img, index) {
+        //console.log(img, index);
+        let check = "PASS";
+
+        if (data.arr[index]) {
+            check = "FAIL";
+            num_fail += 1;
+            /*
+            console.log("index", index);    
+            data.arr[index].forEach(function(arr, index2) {
+                console.log(index2, arr);
+            });  
+            */
+        } else {
+            num_pass += 1;
+        }
+
+        var filename = img.substring(img.lastIndexOf('/')+1);
+        var li = "<li data-img='" + img + "' data-check='" + check + "' class='" + check.substring(0,1).toLowerCase() + "'>[" + check.substring(0,1) + "] " + filename +"</li>"
+        $("#img-list").append(li);    
+        $("#num-pass").text(num_pass);
+        $("#num-fail").text(num_fail);
+    });
+    $("#div-image").removeClass("d-none").show();
+
+    // 수율표시
+    var ic_yidld = parseFloat(num_pass / (num_pass + num_fail) * 100).toFixed(1);
+    if (ic_yidld_target <= ic_yidld) {
+        $("#ic-yidld").css("color","blue");
+    } else {
+        $("#ic-yidld").css("color","red");
+    }
+
+    $("#ic-yidld").text(ic_yidld+"%");
+
+    //console.log("cnt", $("#img-list li").length)
+    if ($("#img-list li").length >= 1) { $("#img-list li").eq(0).trigger('click'); }
+
+    /* chart #1 */
+    var chart_labels = ['B_Point', 'Circle', 'Cut', 'Foreign', 'Project', 'S-Point', 'Scratch', 'Short', 'Width'];
+    var chart_data = getItemCount(data.arr);    
+    if (chart1 != undefined) {
+        chart1.destroy();
+    }
+    chart1 = fn_myChart(chart_labels, chart_data);
+
+    /* chart #2 */
+    var chart_labels2 = ['PASS','FAIL'];
+    var chart_data2 = [num_pass, num_fail];    
+    if (chart2 != undefined) {
+        chart2.destroy();
+    }    
+    chart2 = fn_myChart2(chart_labels2, chart_data2);
+
+    $('#upload-count').text('-');
+    closeLoadingWithMask();
+}
+
+function viewValue(index) {
+    var imgs = document._data.img[index];
+    var arrs = document._data.arr[index];
+
+    if (imgs == undefined) {
+        //console.log("imgs == undefined");
+        return;
+    }
+
+    var filename = imgs.substring(imgs.lastIndexOf('/')+1);
+    var txt = "<dt>IMAGE:</dt>" + "<dd>" + filename + "</dd>";
+    txt += "<dt>ARRAY:</dt><dd>";
+
+    if (arrs) {
+        arrs.forEach(function(arr2, index2) {
+            txt += "<div>" + prnArray(arr2) + "</div>";
+        });  
+    } else {
+        txt += "<div>None</div>";
+    }
+
+    txt += "</dd>";        
+    $("#detail-area").html(txt);
+
+    /* chart #3 */
+    var chart_labels = ['B_Point', 'Circle', 'Cut', 'Foreign', 'Project', 'S-Point', 'Scratch', 'Short', 'Width'];
+    var chart_data = getItemCount2(arrs);    
+    if (chart3 != undefined) {
+        chart3.destroy();
+    }
+    chart3 = fn_myChart3(chart_labels, chart_data);
+}
+
+function prnArray(arr) {
+    var str = "";
+    str += "<span>TYPE: " + arr[5] + "</span>";        
+    str += "<span>ACC: " + parseFloat(arr[4]).toFixed(2) + "</span>";            
+    str += "<span>X: " + arr[0] + ", " + arr[1] + "</span>";
+    str += "<span>Y: " + arr[2] + ", " + arr[3] + "</span>";
+    return str
+}
+
+function getItemCount(arrs) {
+
+    var items = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    if (arrs) {
+        arrs.forEach(function(arr1, index2) {
+            if (arr1) {
+                arr1.forEach(function(arr2, index2) {
+                    items[parseInt(arr2[5],10)] += 1;                    
+                });
+            }
+        });  
+    }    
+
+    return items
+}
+
+function getItemCount2(arrs) {
+
+    var items = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    if (arrs) {
+        arrs.forEach(function(arr1, index1) {
+            items[parseInt(arr1[5],10)] += 1;                    
+        });  
+    }    
+
+    return items
+}
+
+/*
+function readImage(input) {
+    // 인풋 태그에 파일이 있는 경우
+    if(input.files && input.files[0]) {
+        // 이미지 파일인지 검사 (생략)
+        // FileReader 인스턴스 생성
+        const reader = new FileReader()
+        // 이미지가 로드가 된 경우
+        reader.onload = e => {
+            const previewImage = document.getElementById("preview-image");
+            previewImage.src = e.target.result;
+        }
+        // reader가 이미지 읽도록 하기
+        reader.readAsDataURL(input.files[0])
+
+        //$("#crop-image").show();
+        //$("#new-image").hide();
+        $("#div-image").html("").hide();
+    }
+}
+*/
+// input file에 change 이벤트 부여
+//const inputImage = document.getElementById("input-image");
+//inputImage.addEventListener("change", e => {
+//    readImage(e.target);
+//});
+</script>
+
+<script>
+function LoadingWithMask(gif) {
+
+    var file_cnt = $('#input-image')[0].files.length;
+    if (file_cnt < 1) {
+        //console.log('file_cnt:',file_cnt);        
+        alert("품질 검수할 데이터를 입력해 주세요.");
+        return false;        
+    }
+
+    //화면의 높이와 너비를 구합니다.
+    //var maskHeight = $(document).height();
+    //var maskWidth  = window.document.body.clientWidth;
+    var maskHeight = "100%";
+    var maskWidth = "100%";
+
+    //화면에 출력할 마스크를 설정해줍니다.
+    var mask       = "<div id='mask' style='position:fixed; z-index:9000; background-color:#000000; display:none; left:0; top:0;'></div>";
+    var loadingImg = '';
+        
+    loadingImg += " <img src='"+ gif + "' style='position: absolute; top:50%; left:50%; z-index:9001; display: block; margin-top:-100px; margin-left:-100px;'/>";
+    
+    //화면에 레이어 추가
+    $('body')
+        .append(mask)
+    
+    //마스크의 높이와 너비를 화면 것으로 만들어 전체 화면을 채웁니다.
+    $('#mask').css({
+            'width' : maskWidth,
+            'height': maskHeight,
+            'opacity' : '0.3'
+    }); 
+    
+    //마스크 표시
+    $('#mask').show();
+    
+
+    //console.log(loadingImg);
+    //로딩중 이미지 표시
+    $('#mask').append(loadingImg);
+    $('#loadingImg').show();
+
+    return true;
+}
+    
+function closeLoadingWithMask() {
+    $('#mask, #loadingImg').hide();
+    $('#mask, #loadingImg').empty();  
+}
+</script>
+
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+function fn_myChart(labels, data) {
+    //labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    //data = [12, 19, 3, 5, 2, 3, 5, 8, 10];
+    //console.log('myChart:', labels, data);
+
+    const ctx = document.getElementById('myChart');
+    const config = {
+        type: 'bar',
+        data: {
+        labels: labels,
+        datasets: [{
+            label: '# if Items',
+            data: data,
+            borderWidth: 1,
+            backgroundColor: [
+                "rgba(128, 255, 0, 0.70)",
+                "rgba(0, 255, 0, 0.70)",
+                "rgba(51, 255, 153, 0.50)",
+                "rgba(51, 255, 255, 0.50)",
+                "rgba(51, 153, 255, 0.50)",
+                "rgba(51, 51, 255, 0.50)",
+                "rgba(153, 51, 255, 0.50)",
+                "rgba(255, 51, 255, 0.50)",
+                "rgba(255, 51, 153, 0.20)"
+            ]
+        }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+    return new Chart(ctx, config);
+}
+
+function fn_myChart2(labels, data) {
+    //labels = ['PASS','FAIL'];
+    //data = [12, 1];
+    
+    const ctx2 = document.getElementById('myChart2');
+    const config2 = {
+            type: 'bar',
+            data: {
+            labels: labels,
+            datasets: [{
+                label: '# of Count',
+                data: data,
+                borderWidth: 1,
+                backgroundColor: [
+                    "rgba(0, 0, 255, 0.70)",
+                    "rgba(255, 0, 0, 0.70)"
+                ]                
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+    return new Chart(ctx2, config2);
+}
+
+function fn_myChart3(labels, data) {
+    //labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    //data = [12, 19, 3, 5, 2, 3, 5, 8, 10];
+    //console.log('myChart:', labels, data);
+
+    const ctx = document.getElementById('myChart3');
+    const config = {
+        type: 'bar',
+        data: {
+        labels: labels,
+        datasets: [{
+            label: '# if Items',
+            data: data,
+            borderWidth: 1,
+            backgroundColor: [
+                "rgba(128, 255, 0, 0.70)",
+                "rgba(0, 255, 0, 0.70)",
+                "rgba(51, 255, 153, 0.50)",
+                "rgba(51, 255, 255, 0.50)",
+                "rgba(51, 153, 255, 0.50)",
+                "rgba(51, 51, 255, 0.50)",
+                "rgba(153, 51, 255, 0.50)",
+                "rgba(255, 51, 255, 0.50)",
+                "rgba(255, 51, 153, 0.20)"
+            ]            
+        }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+    return new Chart(ctx, config);
+}
+</script>
+{% endblock %}
