@@ -71,4 +71,4 @@ base_url2 = save_dir.replace("/mnt/c/Users/admin/workspace/web_project/_media/sc
 
 ## 다운받은 yolov5 은  yolov5 폴더에서 실행해야 오류가 없음
 - django 의 app 에서 실행되기 때문에 실행해 가면서 yolov5 의  import 된 모듈의 경로를 수정
-- from utils import TryExcept => from yolov5.utils import TryExcept
+- 예> from utils import TryExcept => from yolov5.utils import TryExcept
