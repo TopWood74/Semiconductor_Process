@@ -21,6 +21,7 @@ pip install -qr requirements.txt
 detect.py 를 django 에 맞게 변형 (git 소스 detect_django.py 참고 => 복사해서 사용하는 편함)
 
 - 수정된 내용 일부
+```
 def run() => def run_yolo_image()
 img_tensor = []
 
@@ -46,15 +47,16 @@ img_tensor = []
     gc.collect()
 
     return rvalue
+```
 
 ## detect_django.py 에서 메모리 반납이 잘 되지 않아서 추가
-
-- import gc
+```
+import gc
 
     del model
     del img_tensor
     gc.collect()
-
+```
 를 사용하여 반납
 
 
